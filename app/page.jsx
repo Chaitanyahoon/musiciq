@@ -19,9 +19,15 @@ export default function LandingPage() {
     if (!name.trim()) return
     localStorage.setItem("userName", name)
 
-    // Real Spotify OAuth
+    // Real Spotify OAuth with production URL
     const clientId = process.env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID
-    const redirectUri = `${window.location.origin}/callback`
+
+    if (!clientId) {
+      alert("Spotify Client ID not configured. Please check environment variables.")
+      return
+    }
+
+    const redirectUri = "https://musiciq.vercel.app/callback"
     const scopes = [
       "user-read-private",
       "user-read-email",
@@ -31,15 +37,18 @@ export default function LandingPage() {
       "user-library-read",
     ].join(" ")
 
-    const authUrl =
-      `https://accounts.spotify.com/authorize?` +
-      `client_id=${clientId}&` +
-      `response_type=code&` +
-      `redirect_uri=${encodeURIComponent(redirectUri)}&` +
-      `scope=${encodeURIComponent(scopes)}&` +
-      `show_dialog=true`
+    const state = Math.random().toString(36).substring(7)
+    localStorage.setItem("spotify_state", state)
 
-    window.location.href = authUrl
+    const authUrl = new URL("https://accounts.spotify.com/authorize")
+    authUrl.searchParams.append("client_id", clientId)
+    authUrl.searchParams.append("response_type", "code")
+    authUrl.searchParams.append("redirect_uri", redirectUri)
+    authUrl.searchParams.append("scope", scopes)
+    authUrl.searchParams.append("state", state)
+    authUrl.searchParams.append("show_dialog", "true")
+
+    window.location.href = authUrl.toString()
   }
 
   return (
