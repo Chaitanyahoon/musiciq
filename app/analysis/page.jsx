@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react"
 import { Brain, Music, Loader2, Activity, Database, Server } from "lucide-react"
-import { spotifyService } from "@/lib/services/spotify"
-import { youtubeMusicService } from "@/lib/services/youtube"
-import { appleMusicService } from "@/lib/services/apple"
+import { spotifyService } from "@/lib/services/spotify.js"
+import { youtubeMusicService } from "@/lib/services/youtube.js"
+import { appleMusicService } from "@/lib/services/apple.js"
 
 const analysisSteps = [
   "Connecting to Music API...",
