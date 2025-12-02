@@ -2,10 +2,9 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
-import { Brain, CheckCircle, Zap } from "lucide-react"
+import { Brain, CheckCircle, Zap, TrendingUp, TrendingDown } from "lucide-react"
 import { generateRealQuestions } from "@/lib/real-quiz-generator"
 
 export default function Quiz() {
@@ -16,6 +15,10 @@ export default function Quiz() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [userName, setUserName] = useState("")
   const [spotifyData, setSpotifyData] = useState(null)
+
+  // New state for Live IQ
+  const [liveIQ, setLiveIQ] = useState(120)
+  const [iqTrend, setIqTrend] = useState("stable") // stable, up, down
 
   useEffect(() => {
     const name = localStorage.getItem("userName") || "Anonymous"
@@ -42,11 +45,18 @@ export default function Quiz() {
 
     setIsProcessing(true)
 
+    // Simulate IQ change based on answer (randomized for effect)
+    const iqChange = Math.floor(Math.random() * 10) - 3
+    const newIQ = Math.max(60, Math.min(160, liveIQ + iqChange))
+    setIqTrend(iqChange > 0 ? "up" : "down")
+    setLiveIQ(newIQ)
+
     setTimeout(() => {
       const newAnswers = [...answers, selectedAnswer]
       setAnswers(newAnswers)
       setSelectedAnswer("")
       setIsProcessing(false)
+      setIqTrend("stable")
 
       if (currentQuestion < questions.length - 1) {
         setCurrentQuestion(currentQuestion + 1)
@@ -57,15 +67,15 @@ export default function Quiz() {
           window.location.href = "/results"
         }, 1000)
       }
-    }, 1800)
+    }, 1500)
   }
 
   if (questions.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-indigo-950 text-white flex items-center justify-center">
+      <div className="min-h-screen bg-[#050505] text-white flex items-center justify-center">
         <div className="text-center">
-          <Brain className="w-12 h-12 text-blue-400 mx-auto mb-4 animate-pulse" />
-          <p className="text-gray-400">Generating personalized questions from your Spotify data...</p>
+          <Brain className="w-12 h-12 text-primary mx-auto mb-4 animate-pulse drop-shadow-[0_0_15px_rgba(139,92,246,0.5)]" />
+          <p className="text-gray-400 text-glow">Generating personalized questions from your music data...</p>
         </div>
       </div>
     )
@@ -74,113 +84,138 @@ export default function Quiz() {
   const question = questions[currentQuestion]
   const progress = ((currentQuestion + 1) / questions.length) * 100
 
+  // Dynamic theme based on phase
+  const getPhaseColor = () => {
+    switch (question.phase) {
+      case "roast": return "text-red-500 text-glow-pink"
+      case "doubt": return "text-purple-400 text-glow"
+      default: return "text-blue-400 text-glow-cyan"
+    }
+  }
+
   if (isProcessing) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-indigo-950 text-white flex items-center justify-center">
-        <Card className="max-w-lg mx-4 bg-slate-800/30 border-slate-700/50 backdrop-blur-xl">
-          <CardContent className="p-10 text-center">
+      <div className="min-h-screen bg-[#050505] text-white flex items-center justify-center relative overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-primary/10 rounded-full blur-[120px] animate-pulse-glow"></div>
+        </div>
+
+        <div className="glass-panel max-w-lg mx-4 border-primary/30 animate-in zoom-in duration-300">
+          <div className="p-10 text-center">
             <div className="relative mb-6">
-              <Zap className="w-16 h-16 text-blue-400 mx-auto animate-pulse" />
-              <div className="absolute inset-0 w-16 h-16 mx-auto border-4 border-blue-400/30 rounded-full animate-ping"></div>
+              <Zap className="w-16 h-16 text-primary mx-auto animate-pulse drop-shadow-[0_0_15px_rgba(139,92,246,0.8)]" />
+              <div className="absolute inset-0 w-16 h-16 mx-auto border-4 border-primary/30 rounded-full animate-ping"></div>
             </div>
-            <h3 className="text-2xl font-light text-white mb-4">Processing Response</h3>
-            <p className="text-gray-400">Cross-referencing with your Spotify data...</p>
-            <div className="mt-6 w-full bg-slate-700 rounded-full h-2">
-              <div className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full w-1/3 animate-pulse"></div>
+            <h3 className="text-2xl font-bold text-white mb-4 text-glow">Analyzing Response</h3>
+            <p className="text-gray-300">Adjusting Music IQ Estimate...</p>
+            <div className="mt-8 text-6xl font-black flex justify-center items-center gap-4">
+              <span className="text-white drop-shadow-[0_0_20px_rgba(255,255,255,0.5)]">{liveIQ}</span>
+              {iqTrend === "up" && <TrendingUp className="text-green-400 w-10 h-10 animate-bounce drop-shadow-[0_0_10px_#22c55e]" />}
+              {iqTrend === "down" && <TrendingDown className="text-red-400 w-10 h-10 animate-bounce drop-shadow-[0_0_10px_#ef4444]" />}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-indigo-950 text-white">
-      <div className="container mx-auto px-4 py-8">
-        {/* Enhanced Header */}
-        <div className="text-center mb-12">
-          <div className="flex justify-center items-center mb-6">
-            <Brain className="w-10 h-10 text-blue-400 mr-3 animate-pulse" />
-            <h1 className="text-4xl font-light text-white">Musical Intelligence Assessment</h1>
-          </div>
-          <p className="text-gray-400 text-lg">
-            Personalized evaluation for <span className="text-blue-400 font-medium">{userName}</span>
-          </p>
-          <p className="text-sm text-gray-500 mt-2">Based on your real Spotify listening data</p>
-        </div>
+    <div className="min-h-screen bg-[#050505] text-white relative overflow-hidden font-sans">
+      {/* Background Effects */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-[-10%] right-[-10%] w-[800px] h-[800px] bg-primary/5 rounded-full blur-[120px]"></div>
+        <div className="absolute bottom-[-10%] left-[-10%] w-[600px] h-[600px] bg-accent/5 rounded-full blur-[120px]"></div>
+      </div>
 
-        {/* Enhanced Progress */}
-        <div className="max-w-3xl mx-auto mb-12">
-          <div className="flex justify-between text-sm text-gray-400 mb-3">
-            <span>
-              Question {currentQuestion + 1} of {questions.length}
-            </span>
-            <span>{Math.round(progress)}% Complete</span>
+      <div className="container mx-auto px-4 py-8 relative z-10">
+        {/* Header with Live IQ */}
+        <div className="flex justify-between items-center mb-12 max-w-4xl mx-auto glass-panel p-6 rounded-2xl border-white/10">
+          <div>
+            <h1 className="text-2xl font-bold text-white mb-1 tracking-tight">Assessment in Progress</h1>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-400">Phase:</span>
+              <span className={`text-xs font-bold px-3 py-1 rounded-full bg-white/5 border border-white/10 uppercase tracking-wider ${getPhaseColor()}`}>
+                {question.phase || "Analysis"}
+              </span>
+            </div>
           </div>
-          <div className="w-full bg-slate-800 rounded-full h-3 overflow-hidden">
-            <div
-              className="bg-gradient-to-r from-blue-500 via-purple-500 to-cyan-500 h-3 rounded-full transition-all duration-700 relative"
-              style={{ width: `${progress}%` }}
-            >
-              <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
+          <div className="text-right">
+            <p className="text-[10px] text-gray-400 uppercase tracking-[0.2em] mb-1 font-bold">Live Music IQ</p>
+            <div className={`text-4xl md:text-5xl font-black ${liveIQ > 100 ? "text-green-400 text-glow-green" : liveIQ > 80 ? "text-yellow-400 text-glow-yellow" : "text-red-500 text-glow-pink"}`}>
+              {liveIQ}
             </div>
           </div>
         </div>
 
-        {/* Enhanced Question Card */}
-        <Card className="max-w-4xl mx-auto bg-slate-800/30 border-slate-700/50 backdrop-blur-xl shadow-2xl">
-          <CardHeader className="pb-6">
-            <CardTitle className="text-xl text-center text-white font-light leading-relaxed px-4">
+        {/* Progress */}
+        <div className="max-w-3xl mx-auto mb-10">
+          <div className="w-full bg-white/5 rounded-full h-2 overflow-hidden border border-white/5">
+            <div
+              className="bg-gradient-to-r from-primary via-secondary to-accent h-2 rounded-full transition-all duration-700 relative shadow-[0_0_15px_rgba(139,92,246,0.5)]"
+              style={{ width: `${progress}%` }}
+            >
+              <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-[0_0_10px_white]"></div>
+            </div>
+          </div>
+        </div>
+
+        {/* Question Card */}
+        <div className="glass-panel max-w-4xl mx-auto rounded-3xl overflow-hidden border-white/10 shadow-2xl">
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-secondary to-accent opacity-50"></div>
+
+          <div className="p-8 md:p-12">
+            <h2 className="text-2xl md:text-4xl text-center text-white font-light leading-tight mb-10 px-2 md:px-4">
               {question.question}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-8 pb-8">
+            </h2>
+
             <RadioGroup value={selectedAnswer} onValueChange={handleAnswerSelect} className="space-y-4">
               {question.options.map((option, index) => (
                 <div
                   key={option.value}
-                  className="group flex items-center space-x-4 p-6 rounded-xl border border-slate-600/50 hover:bg-slate-700/30 hover:border-blue-500/50 transition-all duration-300 cursor-pointer"
+                  className={`group flex items-center space-x-4 p-5 md:p-6 rounded-2xl border transition-all duration-300 cursor-pointer ${selectedAnswer === option.value
+                    ? "bg-primary/20 border-primary shadow-[0_0_20px_rgba(139,92,246,0.2)]"
+                    : "bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/20 hover:scale-[1.01]"
+                    }`}
                   onClick={() => setSelectedAnswer(option.value)}
                 >
-                  <RadioGroupItem value={option.value} id={option.value} className="text-blue-400" />
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 font-bold text-lg transition-colors ${selectedAnswer === option.value
+                    ? "border-primary bg-primary text-white shadow-[0_0_10px_#8b5cf6]"
+                    : "border-white/20 text-gray-400 group-hover:border-white/50 group-hover:text-white"
+                    }`}>
+                    {String.fromCharCode(65 + index)}
+                  </div>
                   <Label
                     htmlFor={option.value}
-                    className="text-gray-300 cursor-pointer flex-1 text-lg group-hover:text-white transition-colors"
+                    className={`cursor-pointer flex-1 text-lg md:text-xl font-light transition-colors ${selectedAnswer === option.value ? "text-white" : "text-gray-300 group-hover:text-white"
+                      }`}
                   >
-                    <span className="text-blue-400 font-medium mr-2">{String.fromCharCode(65 + index)}.</span>
                     {option.text}
                   </Label>
+                  <RadioGroupItem value={option.value} id={option.value} className="sr-only" />
                 </div>
               ))}
             </RadioGroup>
 
-            <div className="mt-10 text-center">
+            <div className="mt-12 text-center">
               <Button
                 onClick={handleNextQuestion}
                 disabled={!selectedAnswer}
-                className="bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 hover:from-blue-700 hover:via-purple-700 hover:to-cyan-700 text-white font-medium py-4 px-12 rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed text-lg shadow-lg hover:shadow-xl"
+                className="bg-white text-black hover:bg-gray-200 font-bold py-6 px-12 rounded-full transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed text-lg shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:shadow-[0_0_30px_rgba(255,255,255,0.5)] transform hover:scale-105 active:scale-95 uppercase tracking-widest"
               >
                 {currentQuestion === questions.length - 1 ? (
                   <>
-                    <CheckCircle className="w-5 h-5 mr-2" />
+                    <CheckCircle className="w-5 h-5 mr-3" />
                     Complete Assessment
                   </>
                 ) : (
                   <>
-                    <Zap className="w-5 h-5 mr-2" />
-                    Process & Continue
+                    <Zap className="w-5 h-5 mr-3" />
+                    Submit Answer
                   </>
                 )}
               </Button>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Enhanced Footer */}
-        <div className="text-center mt-12">
-          <p className="text-xs text-gray-500">
-            Questions generated from your actual Spotify data • Advanced AI Analysis • Secure & Private
-          </p>
+          </div>
         </div>
       </div>
     </div>
