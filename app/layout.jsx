@@ -8,7 +8,6 @@ export const metadata = {
   description:
     "Advanced AI analysis of your Spotify listening habits and musical preferences using machine learning algorithms.",
   keywords: ["AI", "music analysis", "spotify", "machine learning", "music intelligence"],
-    generator: 'v0.dev'
 }
 
 export default function RootLayout({ children }) {
